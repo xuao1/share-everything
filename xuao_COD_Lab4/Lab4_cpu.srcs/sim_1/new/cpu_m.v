@@ -24,8 +24,9 @@ module cpu_m();
 
 reg clk;
 reg rstn;
-wire [31:0] a,b;
+wire [31:0] a,b,alu_a,alu_b;
 wire [31:0] ir;
+wire c;
 
 cpu cpu0(
     // 本模块既有 cpu，也有mem
@@ -44,6 +45,9 @@ cpu cpu0(
     // 仿真
     .out0(a),
     .out1(b),
+    .outa(alu_a),
+    .outb(alu_b),
+    .blt_tmp(c),
     .ir_tmp(ir)
 );
 
@@ -57,7 +61,7 @@ always #1 clk = ~clk;
       
 initial begin
     #2 rstn = 1;
-    #20 $finish;
+    #50 $finish;
 end
 
 endmodule

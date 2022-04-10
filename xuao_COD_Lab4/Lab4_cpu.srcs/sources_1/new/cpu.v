@@ -35,13 +35,17 @@ module cpu(
     input [31:0] io_din,// 来自外设的输入数据
 
     // 仿真
-    output [31:0] out0,out1,
+    output [31:0] out0,out1,outa,outb,
+    output blt_tmp,
     output [31:0] ir_tmp
 );
 
 assign out0 = cur_pc;
 assign out1 = Registers[1];
 assign ir_tmp = IR;
+assign blt_tmp = ALUSrc;
+assign outa = RegReadAddr2;
+assign outb = RegReadData2;
 
 // 控制指令
 wire RegWrite,ALUSrc,MemWrite,MemRead,MemtoReg,PCSrc,Branch;
@@ -98,7 +102,7 @@ assign RegReadAddr1 = IR[19:15];
 assign RegReadAddr2 = IR[24:20];
 assign RegWriteAddr = IR[11:7];
 assign RegReadData1 = Registers[RegReadAddr1];
-assign RegReadData1 = Registers[RegReadAddr1];
+assign RegReadData2 = Registers[RegReadAddr2];
 
 wire [31:0] ALU_result;
 wire [31:0] MemReadData;
@@ -109,7 +113,8 @@ always @(posedge clk or negedge rstn) begin
     if(!rstn) begin
 // 数组清零
         Registers[0] <= 0;  
-        Registers[1] <= 0;      
+        Registers[1] <= 0;  
+        Registers[2] <= 0;      
     end
     else begin
         if(RegWrite==1) begin
@@ -158,7 +163,7 @@ Imm_Gen Imm0(.IR(IR),.imm_num(imm_num));
 // ALU
 wire [31:0] ALU_a,ALU_b;
 assign ALU_a = (ALU_auipc==1) ? cur_pc : RegReadData1;
-assign ALU_b = (ALUSrc == 0) ?  RegReadData2 : ((ALU_auipc==1) ? {imm_num[19:0],12'b0} : imm_num) ;
+assign ALU_b = (ALUSrc == 0) ? RegReadData2 : ((ALU_auipc==1) ? {imm_num[19:0],12'b0} : imm_num) ;
 wire [31:0] ALUresult;
 ALU ALU0(.a(ALU_a),.b(ALU_b),.op(ALUop),.result(ALU_result),.alu_equal(ALU_equal),.alu_lessthan(ALU_lessthan));
 
@@ -166,7 +171,7 @@ ALU ALU0(.a(ALU_a),.b(ALU_b),.op(ALUop),.result(ALU_result),.alu_equal(ALU_equal
 
 // beq,blt
 wire [31:0] imm_shift;
-assign imm_shift = {imm_num[30:0],1'b0};
+assign imm_shift = imm_num<<1;
 assign pc_branch = cur_pc + imm_shift;
 
 
