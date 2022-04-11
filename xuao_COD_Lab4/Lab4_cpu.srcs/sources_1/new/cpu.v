@@ -41,10 +41,10 @@ module cpu(
 );
 
 assign out0 = cur_pc;
-assign out1 = Registers[1];
+assign out1 = mmio0;
 assign ir_tmp = IR;
 assign blt_tmp = ALUSrc;
-assign outa = RegReadAddr2;
+assign outa = RegReadData1;
 assign outb = RegReadData2;
 
 // 控制指令
@@ -111,31 +111,35 @@ assign RegWriteData = (PC_jal==1) ? pc_add4 : ((MemtoReg == 1) ? ALU_result : Me
 
 always @(posedge clk or negedge rstn) begin
     if(!rstn) begin
-// 数组清零
-        Registers[0] <= 0;  
-        Registers[1] <= 0;  
-        Registers[2] <= 0;      
+    // 寄存器堆清零
+        Registers[0] <= 0; Registers[1] <= 0; Registers[2] <= 0; Registers[3] <= 0; Registers[4] <= 0; Registers[5] <= 0; Registers[6] <= 0; Registers[7] <= 0;
+        Registers[8] <= 0; Registers[9] <= 0; Registers[10] <= 0; Registers[11] <= 0; Registers[12] <= 0; Registers[13] <= 0; Registers[14] <= 0; Registers[15] <= 0;
+        Registers[16] <= 0; Registers[17] <= 0; Registers[18] <= 0; Registers[19] <= 0; Registers[20] <= 0; Registers[21] <= 0; Registers[22] <= 0; Registers[23] <= 0;
+        Registers[24] <= 0; Registers[25] <= 0; Registers[26] <= 0; Registers[27] <= 0; Registers[28] <= 0; Registers[29] <= 0; Registers[30] <= 0; Registers[31] <= 0;
+      
     end
     else begin
         if(RegWrite==1) begin
             if(RegWriteAddr==0) Registers[0] <= 0;
             else Registers[RegWriteAddr] <= RegWriteData;
         end
-        else Registers[1] <= Registers[1];
     end
 end
 
 
 //Memory
 //一个读写地址，一个写数据，一个读数据，读使能（好像没什么用），写使能
+
+wire [31:0] mmio0;
+
 Memory memory0(
   .a(ALU_result),        // input wire [7 : 0] a
   .d(RegReadData2),        // input wire [31 : 0] d
-  .dpra(),  // input wire [7 : 0] dpra
+  .dpra(8'h0),  // input wire [7 : 0] dpra
   .clk(clk),    // input wire clk
   .we(MemWrite),      // input wire we
   .spo(MemReadData),    // output wire [31 : 0] spo
-  .dpo()    // output wire [31 : 0] dpo
+  .dpo(mmio0)    // output wire [31 : 0] dpo
 );
 
 

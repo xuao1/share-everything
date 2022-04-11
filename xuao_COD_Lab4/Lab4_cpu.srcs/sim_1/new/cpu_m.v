@@ -61,7 +61,7 @@ always #1 clk = ~clk;
       
 initial begin
     #2 rstn = 1;
-    #50 $finish;
+    #500 $finish;
 end
 
 endmodule

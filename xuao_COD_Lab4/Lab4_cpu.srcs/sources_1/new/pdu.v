@@ -39,7 +39,7 @@ reg stop_r, stop_n;
 
 reg [19:0] cnt_clk_r;   //时钟分频、数码管刷新计数器
 reg [4:0] cnt_sw_db_r;
-reg [15:0] x_db_r;
+reg [15:0] x_db_r, x_db_1r;
 reg xx_r, xx_1r;
 wire x_p;
 reg [3:0] x_hd_t;
@@ -113,29 +113,62 @@ end
 ///////////////////////////////////////////////
 //开关sw去抖动
 ///////////////////////////////////////////////
-always @(posedge clk_db) begin
-  if (rst) cnt_sw_db_r <= 5'h0;
-  else if (|(x ^ x_db_r))
-    cnt_sw_db_r <= cnt_sw_db_r + 5'h1;
-  else cnt_sw_db_r <= 5'h0;
-end
 
 always@(posedge clk_db) begin
   if (rst) begin
     x_db_r <= x;
+    x_db_1r <= x;
     xx_r <= 1'b0;
   end
   else if (cnt_sw_db_r[4]) begin    //信号稳定约21ms后输出
     x_db_r <= x;
+    x_db_1r <= x_db_r;
     xx_r <= ~xx_r;
   end
 end
 
-always @(posedge clk_pdu) begin
-  if (rst) xx_1r <= 1'b0;
-  else xx_1r <= xx_r;
+///////////////////////////////////////////////
+//开关编辑数据
+///////////////////////////////////////////////
+always @* begin    //开关输入编码
+  case (x_db_r ^ x_db_1r )
+    16'h0001: x_hd_t = 4'h0;
+    16'h0002: x_hd_t = 4'h1;
+    16'h0004: x_hd_t = 4'h2;
+    16'h0008: x_hd_t = 4'h3;
+    16'h0010: x_hd_t = 4'h4;
+    16'h0020: x_hd_t = 4'h5;
+    16'h0040: x_hd_t = 4'h6;
+    16'h0080: x_hd_t = 4'h7;
+    16'h0100: x_hd_t = 4'h8;
+    16'h0200: x_hd_t = 4'h9;
+    16'h0400: x_hd_t = 4'hA;
+    16'h0800: x_hd_t = 4'hB;
+    16'h1000: x_hd_t = 4'hC;
+    16'h2000: x_hd_t = 4'hD;
+    16'h4000: x_hd_t = 4'hE;
+    16'h8000: x_hd_t = 4'hF;
+    default: x_hd_t = 4'h0;
+  endcase
 end
 
+always @(posedge clk_pdu) begin
+  if (rst) tmp_r <= 32'h0;
+  else if (x_p) tmp_r <= {tmp_r[27:0], x_hd_t};      //x_hd_t + tmp_r << 4
+  else if (del_p) tmp_r <= {{4{1'b0}}, tmp_r[31:4]}; //tmp_r >> 4
+  else if ((cont_p & stop) | (data_p & ~swx_vld_r)) tmp_r <= 32'h0;
+  else if (chk_p & stop) tmp_r <= tmp_r + 32'h1;
+end
+
+always @(posedge clk_pdu) begin
+  if (rst) begin
+    chk_addr_r <= 16'h0;
+    brk_addr_r <= 32'h0;
+  end
+  else if (data_p & ~swx_vld_r) swx_data_r <= tmp_r;
+  else if (cont_p & stop) brk_addr_r <= tmp_r;
+  else if (chk_p & stop) chk_addr_r <= tmp_r;
+end
 
 ///////////////////////////////////////////////
 //按钮btn去抖动
@@ -243,49 +276,6 @@ end
 always@(posedge clk_cpu)begin
   if(rst) cnt_data_r <= 32'h0;
   else cnt_data_r <= cnt_data_r + 32'h1;
-end
-
-///////////////////////////////////////////////
-//开关编辑数据
-///////////////////////////////////////////////
-always @* begin    //开关输入编码
-  case (x_db_r)
-    16'h0001: x_hd_t = 4'h0;
-    16'h0002: x_hd_t = 4'h1;
-    16'h0004: x_hd_t = 4'h2;
-    16'h0008: x_hd_t = 4'h3;
-    16'h0010: x_hd_t = 4'h4;
-    16'h0020: x_hd_t = 4'h5;
-    16'h0040: x_hd_t = 4'h6;
-    16'h0080: x_hd_t = 4'h7;
-    16'h0100: x_hd_t = 4'h8;
-    16'h0200: x_hd_t = 4'h9;
-    16'h0400: x_hd_t = 4'hA;
-    16'h0800: x_hd_t = 4'hB;
-    16'h1000: x_hd_t = 4'hC;
-    16'h2000: x_hd_t = 4'hD;
-    16'h4000: x_hd_t = 4'hE;
-    16'h8000: x_hd_t = 4'hF;
-    default: x_hd_t = 4'h0;
-  endcase
-end
-
-always @(posedge clk_pdu) begin
-  if (rst) tmp_r <= 32'h0;
-  else if (x_p) tmp_r <= {tmp_r[27:0], x_hd_t};      //x_hd_t + tmp_r << 4
-  else if (del_p) tmp_r <= {{4{1'b0}}, tmp_r[31:4]}; //tmp_r >> 4
-  else if ((cont_p & stop) | (data_p & ~swx_vld_r)) tmp_r <= 32'h0;
-  else if (chk_p & stop) tmp_r <= tmp_r + 32'h1;
-end
-
-always @(posedge clk_pdu) begin
-  if (rst) begin
-    chk_addr_r <= 16'h0;
-    brk_addr_r <= 32'h0;
-  end
-  else if (data_p & ~swx_vld_r) swx_data_r <= tmp_r;
-  else if (cont_p & stop) brk_addr_r <= tmp_r;
-  else if (chk_p & stop) chk_addr_r <= tmp_r;
 end
 
 
