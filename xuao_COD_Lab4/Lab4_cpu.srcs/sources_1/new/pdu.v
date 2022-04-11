@@ -12,24 +12,25 @@ module  pdu(
   output stop,          //led16r
   output [15:0] led,    //led15-0
   output [7:0] an,      //an7-0
-  output [6:0] seg,     //ca-cg 
+  output [7:0] seg,     //ca-cg 
   output [2:0] seg_sel, //led17
 
   output clk_cpu,       //cpu's clk
   output rst_cpu,       //cpu's rst
 
   //IO_BUS
-  input [7:0] io_addr,
-  input [31:0] io_dout,
-  input io_we,
-  input io_rd,
   output [31:0] io_din,
 
   //Debug_BUS
-  input [31:0] pc,
-  output [15:0] chk_addr,
-  input [31:0] chk_data
+  output [15:0] chk_addr
+
 );
+wire [31:0] pc;
+wire [31:0] chk_data;
+wire [7:0] io_addr;
+wire [31:0] io_dout;
+wire io_we;
+wire io_rd;
 
 reg [15:0] rstn_r;
 wire rst;               //复位信号，高电平有效
@@ -66,7 +67,7 @@ reg [2:0] seg_sel_r;
 reg [31:0] disp_data_t;
 reg [7:0] an_t;
 reg [3:0] hd_t;
-reg [6:0] seg_t;
+reg [7:0] seg_t;
 
 assign rst = rstn_r[15];    //经处理后的复位信号，高电平有效
 assign rst_cpu = rst;
@@ -83,13 +84,33 @@ assign seg_sel = seg_sel_r;
 assign io_din = io_din_t;
 assign chk_addr = chk_addr_r;
 
+//assign x_p = xx_r ^ xx_1r;
+assign x_p = xx_r & ~ xx_1r;
+
 assign btn ={step, cont, chk, data, del};
-assign x_p = xx_r ^ xx_1r;
 assign step_p = btn_db_r[4] & ~ btn_db_1r[4];
 assign cont_p = btn_db_r[3] & ~ btn_db_1r[3];
 assign chk_p = btn_db_r[2] & ~ btn_db_1r[2];
 assign data_p = btn_db_r[1] & ~ btn_db_1r[1];
 assign del_p = btn_db_r[0] & ~ btn_db_1r[0];
+
+
+cpu cpu0(
+    .clk(clk_cpu),
+    .rstn(~rst_cpu),
+
+    //IO BUS
+    .io_addr(io_addr),// 外设的地址
+    .io_dout(io_dout),// 向外设输出的数据
+    .io_we(io_we),// 向外设输出数据时的写使能信号
+    .io_rd(io_rd),// 从外设输入数据时的读使能信号
+    .io_din(io_din),// 来自外设的输入数据
+
+    // Debug BUS
+    .pc(pc),
+    .chk_addr(chk_addr),
+    .chk_data(chk_data)
+);
 
 
 ///////////////////////////////////////////////
@@ -113,6 +134,12 @@ end
 ///////////////////////////////////////////////
 //开关sw去抖动
 ///////////////////////////////////////////////
+always @(posedge clk_db) begin
+  if (rst) cnt_sw_db_r <= 5'h0;
+  else if (|(x ^ x_db_r))
+    cnt_sw_db_r <= cnt_sw_db_r + 5'h1;
+  else cnt_sw_db_r <= 5'h0;
+end
 
 always@(posedge clk_db) begin
   if (rst) begin
@@ -127,48 +154,11 @@ always@(posedge clk_db) begin
   end
 end
 
-///////////////////////////////////////////////
-//开关编辑数据
-///////////////////////////////////////////////
-always @* begin    //开关输入编码
-  case (x_db_r ^ x_db_1r )
-    16'h0001: x_hd_t = 4'h0;
-    16'h0002: x_hd_t = 4'h1;
-    16'h0004: x_hd_t = 4'h2;
-    16'h0008: x_hd_t = 4'h3;
-    16'h0010: x_hd_t = 4'h4;
-    16'h0020: x_hd_t = 4'h5;
-    16'h0040: x_hd_t = 4'h6;
-    16'h0080: x_hd_t = 4'h7;
-    16'h0100: x_hd_t = 4'h8;
-    16'h0200: x_hd_t = 4'h9;
-    16'h0400: x_hd_t = 4'hA;
-    16'h0800: x_hd_t = 4'hB;
-    16'h1000: x_hd_t = 4'hC;
-    16'h2000: x_hd_t = 4'hD;
-    16'h4000: x_hd_t = 4'hE;
-    16'h8000: x_hd_t = 4'hF;
-    default: x_hd_t = 4'h0;
-  endcase
+always @(posedge clk_pdu) begin
+  if (rst) xx_1r <= 1'b0;
+  else xx_1r <= xx_r;
 end
 
-always @(posedge clk_pdu) begin
-  if (rst) tmp_r <= 32'h0;
-  else if (x_p) tmp_r <= {tmp_r[27:0], x_hd_t};      //x_hd_t + tmp_r << 4
-  else if (del_p) tmp_r <= {{4{1'b0}}, tmp_r[31:4]}; //tmp_r >> 4
-  else if ((cont_p & stop) | (data_p & ~swx_vld_r)) tmp_r <= 32'h0;
-  else if (chk_p & stop) tmp_r <= tmp_r + 32'h1;
-end
-
-always @(posedge clk_pdu) begin
-  if (rst) begin
-    chk_addr_r <= 16'h0;
-    brk_addr_r <= 32'h0;
-  end
-  else if (data_p & ~swx_vld_r) swx_data_r <= tmp_r;
-  else if (cont_p & stop) brk_addr_r <= tmp_r;
-  else if (chk_p & stop) chk_addr_r <= tmp_r;
-end
 
 ///////////////////////////////////////////////
 //按钮btn去抖动
@@ -278,6 +268,49 @@ always@(posedge clk_cpu)begin
   else cnt_data_r <= cnt_data_r + 32'h1;
 end
 
+///////////////////////////////////////////////
+//开关编辑数据
+///////////////////////////////////////////////
+always @* begin    //开关输入编码
+  case (x_db_r ^ x_db_1r )
+    16'h0001: x_hd_t = 4'h0;
+    16'h0002: x_hd_t = 4'h1;
+    16'h0004: x_hd_t = 4'h2;
+    16'h0008: x_hd_t = 4'h3;
+    16'h0010: x_hd_t = 4'h4;
+    16'h0020: x_hd_t = 4'h5;
+    16'h0040: x_hd_t = 4'h6;
+    16'h0080: x_hd_t = 4'h7;
+    16'h0100: x_hd_t = 4'h8;
+    16'h0200: x_hd_t = 4'h9;
+    16'h0400: x_hd_t = 4'hA;
+    16'h0800: x_hd_t = 4'hB;
+    16'h1000: x_hd_t = 4'hC;
+    16'h2000: x_hd_t = 4'hD;
+    16'h4000: x_hd_t = 4'hE;
+    16'h8000: x_hd_t = 4'hF;
+    default: x_hd_t = 4'h0;
+  endcase
+end
+
+always @(posedge clk_pdu) begin
+  if (rst) tmp_r <= 32'h0;
+  else if (x_p) tmp_r <= {tmp_r[27:0], x_hd_t};      //x_hd_t + tmp_r << 4
+  else if (del_p) tmp_r <= {{4{1'b0}}, tmp_r[31:4]}; //tmp_r >> 4
+  else if ((cont_p & stop) | (data_p & ~swx_vld_r)) tmp_r <= 32'h0;
+  else if (chk_p & stop) tmp_r <= tmp_r + 32'h1;
+end
+
+always @(posedge clk_pdu) begin
+  if (rst) begin
+    chk_addr_r <= 16'h0;
+    brk_addr_r <= 32'h0;
+  end
+  else if (data_p & ~swx_vld_r) swx_data_r <= tmp_r;
+  else if (cont_p & stop) brk_addr_r <= tmp_r;
+  else if (chk_p & stop) chk_addr_r <= tmp_r;
+end
+
 
 ///////////////////////////////////////////////
 //led15-0指示灯显示
@@ -348,24 +381,30 @@ end
 
 always @ (*) begin    //7段译码
   case(hd_t) 
-    4'b1111: seg_t = 7'b0111000; 
-    4'b1110: seg_t = 7'b0110000; 
-    4'b1101: seg_t = 7'b1000010; 
-    4'b1100: seg_t = 7'b0110001; 
-    4'b1011: seg_t = 7'b1100000; 
-    4'b1010: seg_t = 7'b0001000; 
-    4'b1001: seg_t = 7'b0001100; 
-    4'b1000: seg_t = 7'b0000000;
-    4'b0111: seg_t = 7'b0001111;
-    4'b0110: seg_t = 7'b0100000;
-    4'b0101: seg_t = 7'b0100100;
-    4'b0100: seg_t = 7'b1001100;
-    4'b0011: seg_t = 7'b0000110; 
-    4'b0010: seg_t = 7'b0010010; 
-    4'b0001: seg_t = 7'b1001111;
-    4'b0000: seg_t = 7'b0000001;
+    4'b1111: seg_t = _F; 
+    4'b1110: seg_t = _E; 
+    4'b1101: seg_t = _D; 
+    4'b1100: seg_t = _C; 
+    4'b1011: seg_t = _B; 
+    4'b1010: seg_t = _A; 
+    4'b1001: seg_t = _9; 
+    4'b1000: seg_t = _8;
+    4'b0111: seg_t = _7;
+    4'b0110: seg_t = _6;
+    4'b0101: seg_t = _5;
+    4'b0100: seg_t = _4;
+    4'b0011: seg_t = _3; 
+    4'b0010: seg_t = _2; 
+    4'b0001: seg_t = _1;
+    4'b0000: seg_t = _0;
     default: seg_t = 7'b1111111;
   endcase
 end
+    parameter  _0 = 8'b1100_0000, _1 = 8'b1111_1001, _2 = 8'b1010_0100,   
+               _3 = 8'b1011_0000, _4 = 8'b1001_1001, _5 = 8'b1001_0010,   
+               _6 = 8'b1000_0010, _7 = 8'b1111_1000, _8 = 8'b1000_0000,  
+               _9 = 8'b1001_0000, _A = 8'b1000_1000, _B = 8'b1000_0011,  
+               _C = 8'b1100_0110, _D = 8'b1010_0001, _E = 8'b1000_0110,  
+               _F = 8'b1000_1110;
 
 endmodule

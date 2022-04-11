@@ -28,24 +28,31 @@ module cpu(
     input rstn,
 
     //IO BUS
-    output [7:0] io_addr,// 外设的地址
-    output [31:0] io_dout,// 向外设输出的数据
-    output io_we,// 向外设输出数据时的写使能信号
-    output io_rd,// 从外设输入数据时的都使能信号
+    output reg [7:0] io_addr,// 外设的地址
+    output reg [31:0] io_dout,// 向外设输出的数据
+    output reg io_we,// 向外设输出数据时的写使能信号
+    output reg io_rd,// 从外设输入数据时的读使能信号
     input [31:0] io_din,// 来自外设的输入数据
 
-    // 仿真
+/*    // 仿真
     output [31:0] out0,out1,outa,outb,
     output blt_tmp,
     output [31:0] ir_tmp
+*/
+    // Debug BUS
+    output [31:0] pc,
+    input [15:0] chk_addr,
+    output reg [31:0] chk_data
 );
 
+/*
 assign out0 = cur_pc;
 assign out1 = mmio0;
 assign ir_tmp = IR;
 assign blt_tmp = ALUSrc;
 assign outa = RegReadData1;
 assign outb = RegReadData2;
+*/
 
 // 控制指令
 wire RegWrite,ALUSrc,MemWrite,MemRead,MemtoReg,PCSrc,Branch;
@@ -62,9 +69,7 @@ reg     [31:0] cur_pc;
 wire    [31:0] nxt_pc,pc_add4,pc_branch; 
 wire    [31:0] pc_jal; // jal 和 jalr 的目标地址
 
-initial begin
-    cur_pc <= 32'h3000;
-end
+assign pc = cur_pc;
 
 // 当前 pc,下一个 pc,pc+4，跳转的目标pc地址,pc选择信号
 always @(posedge clk or negedge rstn) begin
@@ -121,7 +126,12 @@ always @(posedge clk or negedge rstn) begin
     else begin
         if(RegWrite==1) begin
             if(RegWriteAddr==0) Registers[0] <= 0;
-            else Registers[RegWriteAddr] <= RegWriteData;
+            else begin
+                if(IR[6:0]==7'b0000011 && ALU_result[8]==1) begin
+                    Registers[RegWriteAddr] <= io_din;
+                end
+                else Registers[RegWriteAddr] <= RegWriteData;
+            end
         end
     end
 end
@@ -130,16 +140,16 @@ end
 //Memory
 //一个读写地址，一个写数据，一个读数据，读使能（好像没什么用），写使能
 
-wire [31:0] mmio0;
+wire [31:0] Chk_Data;
 
 Memory memory0(
   .a(ALU_result),        // input wire [7 : 0] a
   .d(RegReadData2),        // input wire [31 : 0] d
-  .dpra(8'h0),  // input wire [7 : 0] dpra
+  .dpra(chk_addr[7:0]),  // input wire [7 : 0] dpra
   .clk(clk),    // input wire clk
   .we(MemWrite),      // input wire we
   .spo(MemReadData),    // output wire [31 : 0] spo
-  .dpo(mmio0)    // output wire [31 : 0] dpo
+  .dpo(Chk_Data)    // output wire [31 : 0] dpo
 );
 
 
@@ -149,7 +159,7 @@ assign Branch = (IR[6:0]==7'b1100011) ? 1 : 0; // beq blt
 assign MemRead = (IR[6:0]==7'b0000011) ? 1 : 0; // lw
 assign MemtoReg = (IR[6:0]==7'b0000011) ? 0 : 1; // lw:0; add,addi,auipc,sub:1
 assign ALUop = ((IR[6:0]==7'b0110011)&&(IR[31:25]==7'b0100000)) ? 0 : 1;
-assign MemWrite = (IR[6:0]==7'b0100011) ? 1 : 0; // sw
+assign MemWrite = (IR[6:0]==7'b0100011 && ALU_result[8]==0) ? 1 : 0; // sw,并且要写入存储器的地址小于256，也即不是IO地址
 assign ALUSrc = (IR[6:0]==7'b0110011 || IR[6:0]==7'b1100011) ? 0 : 1;
 // add,sub,beq,blt:0     addi,auipc,lw,sw:1
 assign RegWrite = (IR[6:0]==7'b0110011 || IR[6:0]==7'b0010011 || IR[6:0]==7'b0010111 || IR[6:0]==7'b0000011 || IR[6:0]==7'b1101111 || IR[6:0]==7'b1100111) ? 1 : 0;
@@ -183,5 +193,81 @@ assign pc_branch = cur_pc + imm_shift;
 wire jalr;
 assign jalr = (IR[6:0]==7'b1100111) ? 1 : 0;
 assign pc_jal = (jalr==1) ? (RegReadData1+imm_num)&~1 : (cur_pc+{imm_num[30:0],1'b0});
+
+
+// IO
+// MMIO 的起始地址是 32'h0100，这样的好处就在于可以避免地址太大，而需要额外加指令
+// 00:输出数据到 led;  0c:输出数据到 seg  
+always @(*) begin
+    if(IR[6:0]==7'b0100011) begin
+    // sw
+        if(ALU_result==32'h0100) begin 
+            // led
+            io_addr = 8'h00;
+            io_we = 1;
+            io_dout = RegReadData2;
+        end 
+        else if(ALU_result==32'h010c) begin
+            // seg
+//            io_addr = 8'h08;// 读取数码管输出有效的标志位
+            if(io_din[0]==1) begin
+                io_addr = 8'h0c;
+                io_we = 1;
+                io_dout = RegReadData2;
+            end
+        end
+        else begin
+            io_addr = 0;
+            io_we = 0;
+            io_dout = 0;
+        end
+    end
+    else if(IR[6:0]==7'b0000011) begin
+    // lw
+        if(ALU_result==32'h0114) begin
+            // 开关
+//            io_addr = 8'h10;
+            if(io_din[0]==1) begin
+                io_addr = 8'h14;
+                io_rd = 1;
+            end
+        end
+        else begin
+            io_addr = 0;
+            io_rd = 0;
+        end
+    end
+    else begin
+        io_addr = 0;
+        io_we = 0;
+        io_dout = 0;
+        io_rd = 0;
+    end
+end
+
+always @(*) begin
+    case(chk_addr[13:12])
+    2'b00: begin
+        case(chk_addr[3:0])
+            4'b0000: chk_data = nxt_pc;
+            4'b0001: chk_data = cur_pc;
+            4'b0010: chk_data = IR;
+            4'b0011: chk_data = {20'b0,RegWrite,ALUSrc,MemWrite,MemRead,MemtoReg,PCSrc,Branch,ALUop,ALU_equal,ALU_lessthan,ALU_auipc,PC_jal};
+            4'b0100: chk_data = RegReadData1;
+            4'b0101: chk_data = RegReadData2;
+            4'b0110: chk_data = imm_num;
+            4'b0111: chk_data = ALU_result;
+            4'b1000: chk_data = MemReadData;
+            default: chk_data = 0;
+        endcase
+    end
+    2'b01: begin
+        chk_data = Registers[chk_addr[7:0]];
+    end 
+    2'b10: begin
+        chk_data = Chk_Data;
+    end
+    endcase
+end
 
 endmodule
