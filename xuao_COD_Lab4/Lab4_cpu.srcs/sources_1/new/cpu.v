@@ -88,7 +88,6 @@ assign PCSrc = Branch & ((IR[14:12]==3'b000) ? ALU_equal : ALU_lessthan);
 wire [31:0] n_pc;
 assign n_pc = (PCSrc == 1) ? pc_branch : pc_add4;
 assign nxt_pc = (PC_jal==1) ? pc_jal : n_pc; 
-// PCSrc == 1,则跳转
 
 
 // instruction
@@ -145,7 +144,7 @@ end
 wire [31:0] Chk_Data;
 
 Memory memory0(
-  .a(ALU_result[7:0]),        // input wire [7 : 0] a
+  .a(ALU_result[7:0]>>2),        // input wire [7 : 0] a
   .d(RegReadData2),        // input wire [31 : 0] d
   .dpra(chk_addr[7:0]),  // input wire [7 : 0] dpra
   .clk(clk),    // input wire clk
@@ -211,12 +210,9 @@ always @(*) begin
         end 
         else if(ALU_result==32'h010C) begin
             // seg
-//            io_addr = 8'h08;// 读取数码管输出有效的标志位
-//            if(io_din[0]==1) begin
-                io_addr = 8'h0C;
-                io_we = 1;
-                io_dout = RegReadData2;
-//            end
+            io_addr = 8'h0C;
+            io_we = 1;
+            io_dout = RegReadData2;
         end
         else begin
             io_addr = 0;
@@ -254,7 +250,8 @@ always @(*) begin
             4'b0000: chk_data = nxt_pc;
             4'b0001: chk_data = cur_pc;
             4'b0010: chk_data = IR;
-            4'b0011: chk_data = {20'b0,RegWrite,ALUSrc,MemWrite,MemRead,MemtoReg,PCSrc,Branch,ALUop,ALU_equal,ALU_lessthan,ALU_auipc,PC_jal};
+            4'b0011: chk_data = {20'b0,RegWrite,ALUSrc,MemWrite,MemRead,MemtoReg,PCSrc,
+                                Branch,ALUop,ALU_equal,ALU_lessthan,ALU_auipc,PC_jal};
             4'b0100: chk_data = RegReadData1;
             4'b0101: chk_data = RegReadData2;
             4'b0110: chk_data = imm_num;
