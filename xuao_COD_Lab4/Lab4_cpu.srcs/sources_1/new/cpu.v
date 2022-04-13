@@ -54,7 +54,9 @@ assign outa = RegReadData1;
 assign outb = RegReadData2;
 */
 
+
 // 控制指令
+wire [31:0] IR; //当前指令的内容
 wire RegWrite,ALUSrc,MemWrite,MemRead,MemtoReg,PCSrc,Branch;
 wire ALUop; // 1:+;0:-
 wire ALU_equal,ALU_lessthan; // 分支指令的条件是否得到满足
@@ -90,7 +92,6 @@ assign nxt_pc = (PC_jal==1) ? pc_jal : n_pc;
 
 
 // instruction
-wire [31:0] IR; //当前指令的内容
 wire [7:0] real_IR_addr;
 assign real_IR_addr = (cur_pc-32'h3000)>>2;
 // 指令寄存器只涉及读操作，所以采用ROM
@@ -112,7 +113,8 @@ assign RegReadData2 = Registers[RegReadAddr2];
 wire [31:0] ALU_result;
 wire [31:0] MemReadData;
 assign RegWriteData = (PC_jal==1) ? pc_add4 : ((MemtoReg == 1) ? ALU_result : MemReadData); 
-
+wire [31:0] reg_io;
+assign reg_io = (IR[6:0]==7'b0000011 && ALU_result[8]==1) ? io_din : reg_io;
 
 always @(posedge clk or negedge rstn) begin
     if(!rstn) begin
@@ -128,7 +130,7 @@ always @(posedge clk or negedge rstn) begin
             if(RegWriteAddr==0) Registers[0] <= 0;
             else begin
                 if(IR[6:0]==7'b0000011 && ALU_result[8]==1) begin
-                    Registers[RegWriteAddr] <= io_din;
+                    Registers[RegWriteAddr] <= reg_io;
                 end
                 else Registers[RegWriteAddr] <= RegWriteData;
             end
@@ -143,7 +145,7 @@ end
 wire [31:0] Chk_Data;
 
 Memory memory0(
-  .a(ALU_result),        // input wire [7 : 0] a
+  .a(ALU_result[7:0]),        // input wire [7 : 0] a
   .d(RegReadData2),        // input wire [31 : 0] d
   .dpra(chk_addr[7:0]),  // input wire [7 : 0] dpra
   .clk(clk),    // input wire clk
@@ -207,14 +209,14 @@ always @(*) begin
             io_we = 1;
             io_dout = RegReadData2;
         end 
-        else if(ALU_result==32'h010c) begin
+        else if(ALU_result==32'h010C) begin
             // seg
 //            io_addr = 8'h08;// 读取数码管输出有效的标志位
-            if(io_din[0]==1) begin
-                io_addr = 8'h0c;
+//            if(io_din[0]==1) begin
+                io_addr = 8'h0C;
                 io_we = 1;
                 io_dout = RegReadData2;
-            end
+//            end
         end
         else begin
             io_addr = 0;
@@ -227,10 +229,10 @@ always @(*) begin
         if(ALU_result==32'h0114) begin
             // 开关
 //            io_addr = 8'h10;
-            if(io_din[0]==1) begin
-                io_addr = 8'h14;
-                io_rd = 1;
-            end
+//            if(io_din[0]==1) begin
+            io_addr = 8'h14;
+            io_rd = 1;
+//            end
         end
         else begin
             io_addr = 0;

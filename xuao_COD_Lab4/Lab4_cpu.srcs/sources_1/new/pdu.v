@@ -13,18 +13,15 @@ module  pdu(
   output [15:0] led,    //led15-0
   output [7:0] an,      //an7-0
   output [7:0] seg,     //ca-cg 
-  output [2:0] seg_sel, //led17
-
-  output clk_cpu,       //cpu's clk
-  output rst_cpu,       //cpu's rst
-
-  //IO_BUS
-  output [31:0] io_din,
-
-  //Debug_BUS
-  output [15:0] chk_addr
+  output [2:0] seg_sel //led17
 
 );
+
+wire clk_cpu;       //cpu's clk
+wire rst_cpu;       //cpu's rst
+wire [31:0] io_din;
+wire [15:0] chk_addr;
+
 wire [31:0] pc;
 wire [31:0] chk_data;
 wire [7:0] io_addr;
@@ -33,12 +30,12 @@ wire io_we;
 wire io_rd;
 
 reg [15:0] rstn_r;
-wire rst;               //复位信号，高电平有效
-wire clk_pdu;           //PDU工作时钟
-wire clk_db;            //去抖动计数器时钟
+wire rst;               //??λ??????????Ч
+wire clk_pdu;           //PDU???????
+wire clk_db;            //??????????????
 reg stop_r, stop_n;
 
-reg [19:0] cnt_clk_r;   //时钟分频、数码管刷新计数器
+reg [19:0] cnt_clk_r;   //????????????????????
 reg [4:0] cnt_sw_db_r;
 reg [15:0] x_db_r, x_db_1r;
 reg xx_r, xx_1r;
@@ -50,16 +47,16 @@ reg [4:0] cnt_btn_db_r;
 reg [4:0] btn_db_r, btn_db_1r;
 wire step_p, cont_p, chk_p, data_p, del_p;
 
-reg [15:0] led_data_r;  //指示灯led15-0数据
-reg [31:0] seg_data_r;  //数码管输出数据
-reg seg_rdy_r;          //数码管准备好标志
-reg [31:0] swx_data_r;  //开关输入数据
-reg swx_vld_r;          //开关输入有效标志
-reg [31:0] cnt_data_r;  //性能计数器数据
+reg [15:0] led_data_r;  //????led15-0????
+reg [31:0] seg_data_r;  //????????????
+reg seg_rdy_r;          //????????????
+reg [31:0] swx_data_r;  //????????????
+reg swx_vld_r;          //??????????Ч???
+reg [31:0] cnt_data_r;  //?????????????
 
-reg [31:0] tmp_r;       //临时编辑数据
-reg [31:0] brk_addr_r;  //断点地址
-reg [15:0] chk_addr_r;  //查看地址
+reg [31:0] tmp_r;       //?????????
+reg [31:0] brk_addr_r;  //?????
+reg [15:0] chk_addr_r;  //?????
 reg [31:0] io_din_t;
 
 reg led_sel_r;
@@ -69,11 +66,11 @@ reg [7:0] an_t;
 reg [3:0] hd_t;
 reg [7:0] seg_t;
 
-assign rst = rstn_r[15];    //经处理后的复位信号，高电平有效
+assign rst = rstn_r[15];    //??????????λ??????????Ч
 assign rst_cpu = rst;
-assign clk_pdu = cnt_clk_r[1];      //PDU工作时钟25MHz
-assign clk_db = cnt_clk_r[16];      //去抖动计数器时钟763Hz（周期约1.3ms）
-assign clk_cpu = clk_pdu & stop_n;  //CPU工作时钟
+assign clk_pdu = cnt_clk_r[1];      //PDU???????25MHz
+assign clk_db = cnt_clk_r[16];      //??????????????763Hz???????1.3ms??
+assign clk_cpu = clk_pdu & stop_n;  //CPU???????
 
 assign stop = stop_r;
 assign led = (led_sel_r)? chk_addr : led_data_r;
@@ -100,11 +97,11 @@ cpu cpu0(
     .rstn(~rst_cpu),
 
     //IO BUS
-    .io_addr(io_addr),// 外设的地址
-    .io_dout(io_dout),// 向外设输出的数据
-    .io_we(io_we),// 向外设输出数据时的写使能信号
-    .io_rd(io_rd),// 从外设输入数据时的读使能信号
-    .io_din(io_din),// 来自外设的输入数据
+    .io_addr(io_addr),// ???????
+    .io_dout(io_dout),// ???????????????
+    .io_we(io_we),// ????????????????д??????
+    .io_rd(io_rd),// ????????????????????????
+    .io_din(io_din),// ?????????????????
 
     // Debug BUS
     .pc(pc),
@@ -114,7 +111,7 @@ cpu cpu0(
 
 
 ///////////////////////////////////////////////
-//复位处理：异步复位、同步和延迟释放
+//??λ??????????λ?????????????
 ///////////////////////////////////////////////
 always @(posedge clk, negedge rstn) begin
   if (!rstn) rstn_r <= 16'hFFFF;
@@ -123,7 +120,7 @@ end
 
 
 ///////////////////////////////////////////////
-//时钟分频
+//?????
 ///////////////////////////////////////////////
 always @(posedge clk) begin
   if (rst) cnt_clk_r <= 20'h0;
@@ -132,7 +129,7 @@ end
 
 
 ///////////////////////////////////////////////
-//开关sw去抖动
+//????sw?????
 ///////////////////////////////////////////////
 always @(posedge clk_db) begin
   if (rst) cnt_sw_db_r <= 5'h0;
@@ -147,7 +144,7 @@ always@(posedge clk_db) begin
     x_db_1r <= x;
     xx_r <= 1'b0;
   end
-  else if (cnt_sw_db_r[4]) begin    //信号稳定约21ms后输出
+  else if (cnt_sw_db_r[4]) begin    //???????21ms?????
     x_db_r <= x;
     x_db_1r <= x_db_r;
     xx_r <= ~xx_r;
@@ -161,7 +158,7 @@ end
 
 
 ///////////////////////////////////////////////
-//按钮btn去抖动
+//???btn?????
 ///////////////////////////////////////////////
 always @(posedge clk_db) begin
   if (rst) cnt_btn_db_r <= 5'h0;
@@ -182,7 +179,7 @@ end
 
 
 ///////////////////////////////////////////////
-//控制CPU运行方式
+//????CPU???з??
 ///////////////////////////////////////////////
 reg [1:0] cs, ns;
 parameter STOP = 2'b00, STEP = 2'b01, RUN = 2'b10;
@@ -201,7 +198,8 @@ always @* begin
     end
     STEP: ns = STOP;
     RUN: begin
-      if (brk_addr_r == pc) ns = STOP;
+    //  if (brk_addr_r == pc) ns = STOP;
+      if (brk_addr_r == pc+32'h4) ns = STOP;
     end
     default: ns = STOP;
   endcase
@@ -213,16 +211,22 @@ always @(posedge clk_pdu) begin
   else stop_r <= 1'b0;
 end
 
+
+//always @(negedge clk_pdu) begin
+//  if (rst) stop_n <= 1'b1;
+//  else stop_n <= stop_r;
+//end
+
 always @(negedge clk_pdu) begin
-  if (rst) stop_n <= 1'b1;
-  else stop_n <= stop_r;
+  if (rst) stop_n <= 1'b0;
+  else stop_n <= ~stop_r;
 end
 
 
 ///////////////////////////////////////////////
-//CPU输入/输出
+//CPU????/???
 ///////////////////////////////////////////////
-always @(posedge clk_pdu) begin    //CPU输出
+always @(posedge clk_pdu) begin    //CPU???
   if (rst) begin 
     led_data_r <= 16'hFFFF; 
     seg_data_r <= 32'h12345678;
@@ -242,7 +246,7 @@ always @(posedge clk_pdu) begin
   else if (x_p | del_p) seg_rdy_r <= 1;
 end
 
-always @(*) begin    //CPU输入
+always @(*) begin    //CPU????
   case (io_addr)
     8'h04: io_din_t = {{11{1'b0}}, step, cont, chk, data, del, x};
     8'h08: io_din_t = {{31{1'b0}}, seg_rdy_r};
@@ -261,7 +265,7 @@ end
 
 
 ///////////////////////////////////////////////
-//性能计数器
+//?????????
 ///////////////////////////////////////////////
 always@(posedge clk_cpu)begin
   if(rst) cnt_data_r <= 32'h0;
@@ -269,9 +273,9 @@ always@(posedge clk_cpu)begin
 end
 
 ///////////////////////////////////////////////
-//开关编辑数据
+//?????????
 ///////////////////////////////////////////////
-always @* begin    //开关输入编码
+always @* begin    //???????????
   case (x_db_r ^ x_db_1r )
     16'h0001: x_hd_t = 4'h0;
     16'h0002: x_hd_t = 4'h1;
@@ -297,7 +301,8 @@ always @(posedge clk_pdu) begin
   if (rst) tmp_r <= 32'h0;
   else if (x_p) tmp_r <= {tmp_r[27:0], x_hd_t};      //x_hd_t + tmp_r << 4
   else if (del_p) tmp_r <= {{4{1'b0}}, tmp_r[31:4]}; //tmp_r >> 4
-  else if ((cont_p & stop) | (data_p & ~swx_vld_r)) tmp_r <= 32'h0;
+//  else if ((cont_p & stop) | (data_p & ~swx_vld_r)) tmp_r <= 32'h0;
+  else if ((cont_p & stop) | (data_p)) tmp_r <= 32'h0;
   else if (chk_p & stop) tmp_r <= tmp_r + 32'h1;
 end
 
@@ -306,14 +311,15 @@ always @(posedge clk_pdu) begin
     chk_addr_r <= 16'h0;
     brk_addr_r <= 32'h0;
   end
-  else if (data_p & ~swx_vld_r) swx_data_r <= tmp_r;
+//  else if (data_p & ~swx_vld_r) swx_data_r <= tmp_r;
+  else if (data_p) swx_data_r <= tmp_r;
   else if (cont_p & stop) brk_addr_r <= tmp_r;
   else if (chk_p & stop) chk_addr_r <= tmp_r;
 end
 
 
 ///////////////////////////////////////////////
-//led15-0指示灯显示
+//led15-0???????
 ///////////////////////////////////////////////
 always @(posedge clk_pdu) begin
   if (rst) led_sel_r <= 1'b0;
@@ -323,13 +329,13 @@ end
 
 
 ///////////////////////////////////////////////
-//数码管多用途显示
+//????????????
 ///////////////////////////////////////////////
-always @(posedge clk_pdu) begin    //数码管显示数据选择
+always @(posedge clk_pdu) begin    //???????????????
   if (rst) seg_sel_r <= 3'b001;
-  else if (io_we & (io_addr == 8'h0C)) seg_sel_r <= 3'b001;   //输出
-  else if (x_p | del_p) seg_sel_r <= 3'b010;                  //编辑
-  else if (chk_p & stop) seg_sel_r <= 3'b100;                 //调试
+  else if (io_we & (io_addr == 8'h0C)) seg_sel_r <= 3'b001;   //???
+  else if (x_p | del_p) seg_sel_r <= 3'b010;                  //??
+  else if (chk_p & stop) seg_sel_r <= 3'b100;                 //????
 end
 
 always @* begin
@@ -341,8 +347,8 @@ always @* begin
   endcase
 end
 
-always @(*) begin          //数码管扫描
-  case (cnt_clk_r[19:17])  //刷新频率约为95Hz
+always @(*) begin          //????????
+  case (cnt_clk_r[19:17])  //????????95Hz
     3'b000: begin
       an_t <= 8'b1111_1110; 
       hd_t <= disp_data_t[3:0];
@@ -379,7 +385,15 @@ always @(*) begin          //数码管扫描
   endcase
 end
 
-always @ (*) begin    //7段译码
+    parameter  _0 = 8'b1100_0000, _1 = 8'b1111_1001, _2 = 8'b1010_0100,   
+               _3 = 8'b1011_0000, _4 = 8'b1001_1001, _5 = 8'b1001_0010,   
+               _6 = 8'b1000_0010, _7 = 8'b1111_1000, _8 = 8'b1000_0000,  
+               _9 = 8'b1001_0000, _A = 8'b1000_1000, _B = 8'b1000_0011,  
+               _C = 8'b1100_0110, _D = 8'b1010_0001, _E = 8'b1000_0110,  
+               _F = 8'b1000_1110;
+
+
+always @ (*) begin    //7??????
   case(hd_t) 
     4'b1111: seg_t = _F; 
     4'b1110: seg_t = _E; 
@@ -400,11 +414,5 @@ always @ (*) begin    //7段译码
     default: seg_t = 7'b1111111;
   endcase
 end
-    parameter  _0 = 8'b1100_0000, _1 = 8'b1111_1001, _2 = 8'b1010_0100,   
-               _3 = 8'b1011_0000, _4 = 8'b1001_1001, _5 = 8'b1001_0010,   
-               _6 = 8'b1000_0010, _7 = 8'b1111_1000, _8 = 8'b1000_0000,  
-               _9 = 8'b1001_0000, _A = 8'b1000_1000, _B = 8'b1000_0011,  
-               _C = 8'b1100_0110, _D = 8'b1010_0001, _E = 8'b1000_0110,  
-               _F = 8'b1000_1110;
 
 endmodule

@@ -257,7 +257,7 @@ pip install git+https://github.com/boudinfl/pke.git
    ```shell
    vim ~/.bashrc
    export PATH=/home/xxx/.local/bin/:$PATH #这一行放在 .bashrc 文件的最后，xxx 替换为你的用户名
-   source ~./bashrc
+   source ~/.bashrc
    ```
 
 2. 只能 python3 安装，不能 python 安装
