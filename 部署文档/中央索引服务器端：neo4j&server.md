@@ -1,3 +1,4 @@
+# neo4j
 ### 安装 jdk11
 
 + 首先卸载服务器上原本可能存在的 openjdk
@@ -7,8 +8,6 @@
 + 在[华为镜像站](https://repo.huaweicloud.com/java/jdk/11.0.1+13/)下载压缩包
 
   `jdk-11.0.1_linux-x64_bin.tar.gz `
-
-  注：如果是纯命令行，那么输入以下命令：
 
 + 找到一个合适的路径，建议在 `/usr/local`，新建文件夹，在其中解压缩
 
@@ -150,162 +149,9 @@
 
 
 
-### Web 文件夹
-
-​	fonts，js，css，sass，index.html 组成第一层网页，用于登陆和检测服务器是否已连接的目的
-
-​	GraphGui 为一个废弃的图数据库交互页面，以免后来人用的上，故暂且放置于文件夹中
-
-​	GraphGui2 为当前的图数据库交互页面，有搜索，打开，删除文件的功能，从第一层登陆网页登陆后将进入此页面。其中 action.js，ui.js，login.js 是用于服务于交互页面的 js 文件，login.js 用于刚刚进入网页时连接上上面所述的服务器主程序 serverWeb.py，action.js 用于进行一些事件的反馈相应，如点击“打开文件”后向服务器发生消息等，ui.js 处理一些诸如鼠标点击等事件的相应。其他文件为网页框架文件，值得一提的是 node_modules 文件夹里面是一个较好的使用 js 和 neo4j 进行交互的一个js框架，名字叫做 pototo，如果需要修改底层交互的方式，请修改pototo 文件。d3 是一个较好的使用 js 显示图形的框架，详细的使用说明可以查阅其官网的文档。如需修改此页面较上层的一些交互逻辑，可修改 GraphGui2/js/main.js。如需修改搜索的部分，可修改 GraphGui2/js/auto-complete.js，这两个文件都是已经被本组修改过的，若需要原始文件可在 pototo 的 github 上获得。
-
-​	Download 为下载客户端的页面，DownloadFile 文件夹内用来存放客户端，如需更改存放的客户端的名字请同步更改 Download 下 index.html 中 a 标签的 href 值。其他文件夹中的文件均为网页框架，对网页主逻辑不构成影响。
-
-
-
-### 客户端
-
-​	客户端提供了两个平台，Windows 和 Ubuntu。启动客户端是依靠 `DisGraFS-Client.py`，Windows 和 Ubuntu 下，这个 python 文件也会有细微的差别。
-
 ​	
 
-### Ray
 
-+ 前提：虚拟机中安装有 python 和 pip
-
-+ 安装 ray 最新发行版：
-
-  ```shell
-  sudo apt-get update
-  sudo pip3 install -U ray
-  sudo pip3 install 'ray[default]' #美化cli界面
-  ```
-
-  注：可能会遇到如下报错：
-
-  > The directory 'xxx' or its patent directory is not owned by the current...
-
-  这个 warning 的内容大概是，当前用户不拥有目录或其父目录，并且缓存已被禁用。可以忽略这个 warning，如果想要解决，则可修改为如下命令：
-
-  ```shell
-  sudo -H pip3 install ...
-  ```
-
-  安装结果如下：
-
-  <img src="image\image-20220408161425411.png" alt="image-20220408161425411" style="zoom:80%;" />
-
-+ 另外，我的 python 版本是 3.6.9，之后可能会需要统一分布式集群的 python 版本
-
-### Ray cluster 搭建
-
-前提要求：各台服务器在**同一个局域网**中，安装有**相同版本的python和ray**。
-
-#### header 节点
-
-```shell
-ray start --head --port=6379
-```
-
-<img src="image\image-20220408162006133.png" alt="image-20220408162006133" style="zoom:67%;" />
-
-#### worker节点
-
-```shell
-ray start --address='192.168.10.132:6379' --redis-password='5241590000000000' #视实际情况修改address
-```
-
-预期看到以下界面
-
-<img src="image\image-20220408162751753.png" alt="image-20220408162751753" style="zoom:80%;" />
-
-如果要退出集群，只需
-
-```shell
-ray stop
-```
-
-
-
-### tagging程序依赖包安装
-
-默认配置为清华源
-
-```shell
-pip install pdfplumber
-pip install sphinx
-pip install ffmpeg	#这一句出了问题,会有 warning 或许应该修改为：sudo apt install ffmpeg
-
-pip install SpeechRecognition
-pip install tinytag
-pip install pydub
-pip install nltk
-pip install spacy
-python -m nltk.downloader stopwords
-python -m nltk.downloader universal_tagset
-python3 -m spacy download en
-pip install git+https://github.com/boudinfl/pke.git
-```
-
-
-
-可能出现的问题以及解决方案：
-
-1. 可能会出现如下 warning：
-
-   ![image-20220408165842811](image\image-20220408165842811.png)
-
-   解决方案：将提到的路径添加到环境变量
-
-   ```shell
-   vim ~/.bashrc
-   export PATH=/home/xxx/.local/bin/:$PATH #这一行放在 .bashrc 文件的最后，xxx 替换为你的用户名
-   source ~./bashrc
-   ```
-
-2. 只能 python3 安装，不能 python 安装
-
-   解答：这是因为 /usr/bin 下面只有 python3 命令，没有 python 命令。解决方案是做一个软链接：
-
-   `sudo ln -s /usr/bin/python3 /usr/bin/python`
-
-3. pip3 安装报错
-
-   使用 pip 安装
-
-### 网页端文件修改
-
-> 直接将网页文件直接部署到服务器上即可，其中有形如**47.119.121.73**的部分，均改为你自己的服务器的公网IP即可。
-
-#### 具体操作流程
-
-找到`x-DisGraFS\web&server\web\index.html`
-
-找到代码：
-```html
-var ws = new WebSocket("ws://192.168.14.98:9090"); //创建WebSocket连接
-```
-将上述`192.168.14.98`更改为服务器的公网ip
-- 同理 如果想在windows上连接到ubuntu虚拟机的serveWeb 也只需要输入为虚拟机的ip
-
-  虚拟机ip可以在ubuntu-桌面-右键-网络-有线-设置-IpV4地址
-  如果连接失败请尝试windows能否ping到虚拟机ip，虚拟机能否ping到windowsip
-  如果不行，请检查windows防火墙-高级设置-入站规则-虚拟机监控回显请求ipv4 打开应该就可以了
-
-- 如果是在同一台电脑上运行请使用`127.0.0.1` 即环路ip
-
-在打开`serverWeb.py`的前提下 打开`index.html`即可成功连接到服务端
-连接成功标志为serveWeb.py运行的终端看到如下提示
-```shell
-Neo4j服务器连接成功...
-主服务器初始化成功，等待连接...
-Sat Apr  9 13:07:41 2022 :mainWeb
-websocket:  9090
-```
-并且打开index.html未出现错误提示`file:// 连接服务器失败`
-
-### 安装客户端
-
-双击setup.dat即可 弹出什么就安装什么
 
 ### 启动顺序
 
