@@ -1,4 +1,16 @@
-### Ray
+- [¼ÆËã¶Ë:ray&tagging](#¼ÆËã¶Ëraytagging)
+  - [Ray](#ray)
+    - [Ray cluster ´î½¨](#ray-cluster-´î½¨)
+      - [header ½Úµã](#header-½Úµã)
+      - [worker½Úµã](#worker½Úµã)
+  - [tagging](#tagging)
+    - [tagging³ÌĞòÒÀÀµ°ü°²×°](#tagging³ÌĞòÒÀÀµ°ü°²×°)
+
+
+
+# ¼ÆËã¶Ë:ray&tagging
+
+## Ray
 
 + Ç°Ìá£ºĞéÄâ»úÖĞ°²×°ÓĞ python ºÍ pip
 
@@ -54,7 +66,7 @@ ray start --address='192.168.10.132:6379' --redis-password='5241590000000000' #Ê
 ray stop
 ```
 
-
+## tagging
 
 ### tagging³ÌĞòÒÀÀµ°ü°²×°
 

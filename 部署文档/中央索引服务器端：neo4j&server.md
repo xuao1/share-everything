@@ -1,4 +1,13 @@
-# neo4j
+- [中央索引服务器:neo4j&server](#中央索引服务器neo4jserver)
+  - [neo4j](#neo4j)
+    - [安装 jdk11](#安装-jdk11)
+    - [安装 neo4j](#安装-neo4j)
+    - [部署服务器端](#部署服务器端)
+
+# 中央索引服务器:neo4j&server
+
+## neo4j
+
 ### 安装 jdk11
 
 + 首先卸载服务器上原本可能存在的 openjdk
@@ -141,50 +150,3 @@
 
 > main_server 中所存放的为服务器端所需的两个文件：pytoneo.py 和 serverWeb.py。pytoneo.py 为工具型程序，用来和 neo4j 数据库进行交互，serverWeb.py 将调用 pytoneo.py 的函数以实现创建结点，删除结点等功能。
 
-
-
-### 说明：关于各个模块的启动顺序
-
-> serverWeb.py 为服务器主程序，请先启动本程序再进行之后的所有连接操作，此程序必须在访问网页端，连接打标服务器，启动客户端之前启动。此程序主要作用为分发各类消息给“客户端”，“打标服务器”，“pytoneo” 进行处理。
-
-
-
-​	
-
-
-
-### 启动顺序
-
-如果你是按照本文档流程成功配置到这里，那么 DisGraFS 的中央索引服务器和分布式计算集群已经搭建好了，启动顺序为：
-
-**启动中央索引服务器**
-
-```shell
-/.neo4j start 
-cd /x-DisGraFS-main/web&server/main_server
-ip addr show #查看中央索引服务器的 ip 地址，这句其实是查看你虚拟机的 ip 地址
-# 需要修改 serverWeb.py 中的 ip 地址，将其中的 47.119.121.73 修改为上一句看到的 ip 地址
-python3 serverWeb.py
-```
-
-**启动分布式计算集群**
-
-```shell
-ray start --head --port=6379
-# 根据“启动中央索引服务器”时查看到的 ip 地址，打开 x-DisGraFS-main 的 ray_tagging 文件夹下的 ray_server.py，将其中的 47.119.121.73 修改为上一条指令查看到的 ip 地址
-cd /x-DisGraFS-main/web&server/ray_tagging
-python3 tag_server.py
-```
-
-启动以后的效果图如下：
-
-![image-20220409105813840](image\image-20220409105813840.png)
-
-![image-20220409105831773](image\image-20220409105831773.png)
-
-大致流程为：
-
-1. 启动neo4j serverWeb
-2. 启动打标服务器
-3. 下载安装客户端
-4. 打开网页

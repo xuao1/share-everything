@@ -1,4 +1,16 @@
-# JuiceFS 搭建与挂载
+- [储存端：JuiceFS 搭建与挂载](#储存端juicefs-搭建与挂载)
+  - [Reference](#reference)
+  - [Platform](#platform)
+  - [JuiceFS 简介](#juicefs-简介)
+  - [Steps](#steps)
+    - [安装 FUSE](#安装-fuse)
+    - [安装 JuiceFS 客户端](#安装-juicefs-客户端)
+    - [准备 Redis 数据库](#准备-redis-数据库)
+    - [准备对象存储 OSS](#准备对象存储-oss)
+    - [创建文件系统](#创建文件系统)
+    - [挂载文件系统](#挂载文件系统)
+
+# 储存端：JuiceFS 搭建与挂载
 
 ## Reference
 
