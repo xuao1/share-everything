@@ -201,7 +201,7 @@ always @(*) begin
     end
     // ALU第二个操作数
     if((Mem_IR[6:0]==7'b0010011 || Mem_IR[6:0]==7'b0110011 || Mem_IR[6:0]==7'b0010111 || Mem_IR[6:0]==7'b0000011) && EX_IR[24:20]==Mem_IR[11:7]) begin
-        ALU_B = WB_ALU_result;
+        ALU_B = Mem_ALU_result;
     end
     else if((WB_IR[6:0]==7'b0010011 || WB_IR[6:0]==7'b0110011 || WB_IR[6:0]==7'b0010111 || WB_IR[6:0]==7'b0000011) && EX_IR[24:20]==WB_IR[11:7]) begin
         ALU_B = WB_ALU_result;
