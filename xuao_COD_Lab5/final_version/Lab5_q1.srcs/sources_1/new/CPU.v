@@ -411,7 +411,8 @@ always @(*) begin
             5'b01111: chk_data = WB_MemReadData;
             5'b10000: chk_data = WB_ALU_result;
             5'b10001: chk_data = WB_IR;
-            5'b10010: chk_data = WB_pc;
+            5'b10010: chk_data = ALU_A;
+            5'b10011: chk_data = ALU_B;
             default: chk_data = 0;
         endcase
     end
