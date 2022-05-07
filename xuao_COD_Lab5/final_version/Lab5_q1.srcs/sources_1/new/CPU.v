@@ -281,7 +281,8 @@ always @(posedge clk or negedge rstn) begin
         WB_pc <= 0;
     end
     else begin
-        WB_ALU_result <= Mem_ALU_result;
+        //lw指令的alu_result是地址 不是数据
+        WB_ALU_result <= (Mem_IR[6:0]==7'b0000011) ? MemReadData : Mem_ALU_result;
         WB_ctrl <= Mem_ctrl;
         WB_IR <= Mem_IR;
         WB_MemReadData <= MemReadData;
