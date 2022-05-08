@@ -1,10 +1,11 @@
-- [中央索引服务器:neo4j&server](#中央索引服务器neo4jserver)
-  - [neo4j](#neo4j)
-    - [安装 jdk11](#安装-jdk11)
-    - [安装 neo4j](#安装-neo4j)
-    - [部署服务器端](#部署服务器端)
-
 # 中央索引服务器:neo4j&server
+
+[中央索引服务器:neo4j&server](#中央索引服务器neo4jserver)
+
+- [neo4j](#neo4j)
+  - [安装 jdk11](#安装-jdk11)
+  - [安装 neo4j](#安装-neo4j)
+  - [部署服务器端](#部署服务器端)
 
 ## neo4j
 
