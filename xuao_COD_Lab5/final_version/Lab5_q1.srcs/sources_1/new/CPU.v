@@ -243,7 +243,7 @@ always @(posedge clk or negedge rstn) begin
     end    
     else begin
         Mem_ALU_result <= ALU_result;
-        Mem_B <= EX_B;
+        Men_B <= ((Mem_IR[6:0]==7'b0010011 || Mem_IR[6:0]==7'b0110011 || Mem_IR[6:0]==7'b0010111 || Mem_IR[6:0]==7'b0000011) && EX_IR[24:20]==Mem_IR[11:7]) ? Mem_ALU_result : (((WB_IR[6:0]==7'b0010011 || WB_IR[6:0]==7'b0110011 || WB_IR[6:0]==7'b0010111 || WB_IR[6:0]==7'b0000011) && EX_IR[24:20]==WB_IR[11:7]) ? WB_ALU_result : EX_B);
         Mem_ctrl <= {EX_ctrl[31:10],ALU_lessthan,ALU_equal,EX_ctrl[7:6],PCSrc,EX_ctrl[4:3],MemWrite,EX_ctrl[1:0]};
         Mem_IR <= EX_IR;
         Mem_pc <= EX_pc;
