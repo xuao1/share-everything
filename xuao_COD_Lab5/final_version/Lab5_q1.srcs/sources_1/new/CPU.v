@@ -243,6 +243,7 @@ always @(posedge clk or negedge rstn) begin
     end    
     else begin
         Mem_ALU_result <= ALU_result;
+        //注意sw的值没有前递上来 所以在这里前递一下
         Men_B <= ((Mem_IR[6:0]==7'b0010011 || Mem_IR[6:0]==7'b0110011 || Mem_IR[6:0]==7'b0010111 || Mem_IR[6:0]==7'b0000011) && EX_IR[24:20]==Mem_IR[11:7]) ? Mem_ALU_result : (((WB_IR[6:0]==7'b0010011 || WB_IR[6:0]==7'b0110011 || WB_IR[6:0]==7'b0010111 || WB_IR[6:0]==7'b0000011) && EX_IR[24:20]==WB_IR[11:7]) ? WB_ALU_result : EX_B);
         Mem_ctrl <= {EX_ctrl[31:10],ALU_lessthan,ALU_equal,EX_ctrl[7:6],PCSrc,EX_ctrl[4:3],MemWrite,EX_ctrl[1:0]};
         Mem_IR <= EX_IR;
@@ -339,7 +340,7 @@ always @(*) begin
     // 如果是向外设 store 数据，那么输出数据应该是在 Mem 流水段发生
     if(Mem_IR[6:0]==7'b0100011) begin
     // sw
-        if(Mem_ALU_result==32'h0100) begin 
+        if(Mem_ALU_result==32'hffffff00) begin 
             // led
             io_addr = 8'h00;
             io_we = 1;
