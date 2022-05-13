@@ -344,7 +344,7 @@ always @(*) begin
             // led
             io_addr = 8'h00;
             io_we = 1;
-            io_dout = Mem_B;
+            io_dout = Mem_B + 1;
         end 
         else if(Mem_ALU_result==32'h010C) begin
             // seg
