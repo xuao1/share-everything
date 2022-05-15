@@ -18,7 +18,7 @@ connect，目前来看是连接了 server，也连接了 FragmentManager
 >
 > 这个类中有四个函数，除去最开始的声明函数，剩下的依次为：getStatus, setStatus, waitChange
 >
-> waitChange(int oldValue)：如果当前的状态为 oldvalue，那就同步等待，如果有 Interrupt 产生，就打印提示信息 “interrupted”，然后返回状态值。这个函数的返回有两种情况，一是当前状态不是 oldValue，另一种是产生了 interrupt
+> waitChange(int oldValue)：如果当前的状态为 oldvalue，那就同步等待，如果有 Interrupt 产生，就打印提示信息 “interrupted”，然后返回状态值。这个函数的返回有两种情况，一是当前状态不是 oldValue，另一种是产生了 interrupt，正常应该是后者
 
 syn 应该是处理同步锁的量，主要用于通信。他会执行 `waitChange(0)`，要么等待 interrupt，要么它的 status 变成 1 或 2，这两种都是出错情况
 
@@ -36,3 +36,8 @@ begin 中启动了 serverConnerctor 和 requestManager，这都是他们调用�
 
 理论上应该有循环或者重新运行的操作
 
+
+
+### 补充
+
+Thread 类中的 join 方法的主要作用就是同步，它可以使得线程之间的并行执行变为串行执行。具体看代码
