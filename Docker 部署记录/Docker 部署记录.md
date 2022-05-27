@@ -1,6 +1,6 @@
-## 存储系统主节点（server）的部署优化
+## 存储系统主节点（server）的部署补充
 
-运行完 docker-compose up 后，按如下操作导入初始 mysql 数据库。
+部署 server 节点时，运行完 docker-compose up 后，按如下操作导入初始 mysql 数据库。
 
 1. 进入 mymysql 容器。
 
@@ -26,7 +26,7 @@
 
 ## 存储系统子节点（client）的部署
 
-1. 在文件夹 client 内运行如下指令，创建 docker 镜像。
+1. 在文件夹 client_docker 内运行如下指令，创建 docker 镜像。
 
    ```shell
    docker build -t client .
