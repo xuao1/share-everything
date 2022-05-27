@@ -5,13 +5,13 @@ using namespace std;
 void sunzi(vector<int> array, vector<int> &b);
 void min_toge(const vector<int> array, vector<int> &bm);
 void simply(const vector<int> array, vector<int> &array_sim);
-//³¢ÊÔ£ºÔ¼·ÖËùÓĞÊäÈë±£Ö¤»¥ËØ È»ºó°´´«Í³×ö
+//å°è¯•ï¼šçº¦åˆ†æ‰€æœ‰è¾“å…¥ä¿è¯äº’ç´  ç„¶åæŒ‰ä¼ ç»Ÿåš
 int main()
 {
     int n;
     cin >> n;
-    vector<int> array;     //´æ·Åai
-    vector<int> array_sim; //Ô¼·ÖºóµÄai ²»Í¬ÃİÖ®¼äÈ¡×î¸ßµÄ
+    vector<int> array;     //å­˜æ”¾ai
+    vector<int> array_sim; //çº¦åˆ†åçš„ai ä¸åŒå¹‚ä¹‹é—´å–æœ€é«˜çš„
     vector<int> b;         // bi
     while (n != 0)
     {
@@ -34,10 +34,10 @@ int main()
 }
 void simply(const vector<int> array, vector<int> &array_sim)
 {
-    const int p[15] = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47}; //ËØÊı±í ÒòÎªÌâÄ¿Êı×ÖĞ¡ÓÚ50
-    int exp[array.size()][15];                                                  //ÏÈ°ÑÃ¿Ò»¸öaÖÊÒòÊı·Ö½â
-    for (int i = 0; i < array.size(); i++)                                      //ËØÊı·Ö½â
-    {                                                                           // i¶ÔÓ¦a
+    const int p[15] = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47}; //ç´ æ•°è¡¨ å› ä¸ºé¢˜ç›®æ•°å­—å°äº50
+    int exp[array.size()][15];                                                  //å…ˆæŠŠæ¯ä¸€ä¸ªaè´¨å› æ•°åˆ†è§£
+    for (int i = 0; i < array.size(); i++)                                      //ç´ æ•°åˆ†è§£
+    {                                                                           // iå¯¹åº”a
         int temp = array[i];
         for (int j = 0; j < 15; j++)
         {
@@ -51,10 +51,10 @@ void simply(const vector<int> array, vector<int> &array_sim)
         }
         // cout << endl;
     }
-    int max[15] = {0};           //Ö¸Êı×î´óÖµ
-    for (int j = 0; j < 15; j++) //ÇóÖ¸Êı×î´óÖµ
+    int max[15] = {0};           //æŒ‡æ•°æœ€å¤§å€¼
+    for (int j = 0; j < 15; j++) //æ±‚æŒ‡æ•°æœ€å¤§å€¼
     {
-        for (int m = 0; m < array.size(); m++) //È¡Ö¸Êı×î´óÖµ
+        for (int m = 0; m < array.size(); m++) //å–æŒ‡æ•°æœ€å¤§å€¼
         {
             if (exp[m][j] > max[j])
             {
@@ -62,14 +62,14 @@ void simply(const vector<int> array, vector<int> &array_sim)
             }
         }
     }
-    for (int i = 0; i < array.size(); i++) //»¯¼òarray
-    {                                      //¶ÔÓÚÃ¿¸öarrayÖĞµÄÊı µ±ÇÒ½öµ±ÆäÊÇÊäÈëÖĞÖ¸Êı×î´óÖµ²Å±£Áô ²»È»¶¼Ô¼µô
+    for (int i = 0; i < array.size(); i++) //åŒ–ç®€array
+    {                                      //å¯¹äºæ¯ä¸ªarrayä¸­çš„æ•° å½“ä¸”ä»…å½“å…¶æ˜¯è¾“å…¥ä¸­æŒ‡æ•°æœ€å¤§å€¼æ‰ä¿ç•™ ä¸ç„¶éƒ½çº¦æ‰
         int base = 1;
         // for(int i =0;i<15;cout<<max[i++]<<" ");
         for (int j = 0; j < 15; j++)
         {
             if (exp[i][j] == max[j])
-            { //Ö»±£Áô´ÎÊı×î¸ßÏî
+            { //åªä¿ç•™æ¬¡æ•°æœ€é«˜é¡¹
                 for (int m = max[j]; m > 0; m--)
                 {
                     base *= p[j];
@@ -85,13 +85,13 @@ void simply(const vector<int> array, vector<int> &array_sim)
 }
 void sunzi(vector<int> array, vector<int> &b)
 {
-    //Ö±½Ó¼ÆËã³ö´ğ°¸µÄº¯Êı
-    vector<int> bm; //³ıaiÍâµÄ³Ë»ı
+    //ç›´æ¥è®¡ç®—å‡ºç­”æ¡ˆçš„å‡½æ•°
+    vector<int> bm; //é™¤aiå¤–çš„ä¹˜ç§¯
     min_toge(array, bm);
     for (int i = 0; i < array.size(); i++)
     {
-        //¿ªÊ¼Çóbi
-        int cnt = 0; //¼ÇÂ¼temp³Ë·½´ÎÊı ×î´ón-1
+        //å¼€å§‹æ±‚bi
+        int cnt = 0; //è®°å½•tempä¹˜æ–¹æ¬¡æ•° æœ€å¤§n-1
         int temp = bm[i];
         // cout<<"i temp:"<<i<<"  "<<temp<<endl;
         // int temp_p
@@ -109,7 +109,7 @@ void sunzi(vector<int> array, vector<int> &b)
         // cout << endl;
         if (temp % array[i] == 1)
         {
-            //ÕÒµ½ÁË
+            //æ‰¾åˆ°äº†
             b.push_back(temp);
         }
         else
@@ -134,9 +134,9 @@ void sunzi(vector<int> array, vector<int> &b)
     }
     cout << endl;
 }
-void min_toge(const vector<int> array, vector<int> &bm) //·µ»ØÃ¿¸öÊı³ö×Ô¼ºÖ®ÍâµÄ³Ë»ı
+void min_toge(const vector<int> array, vector<int> &bm) //è¿”å›æ¯ä¸ªæ•°å‡ºè‡ªå·±ä¹‹å¤–çš„ä¹˜ç§¯
 {
-    for (int i = 0; i < array.size(); i++) //È¡array
+    for (int i = 0; i < array.size(); i++) //å–array
     {
         int base = 1;
         for (int j = 0; j < array.size(); j++)

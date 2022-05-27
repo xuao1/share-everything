@@ -5,8 +5,8 @@
 #define num 5
 int main()
 {
-	int m[num] = {252,252,28,189,36};
-	int n[num] = {3,6,9,12,14};
+	int m[num] = {15120, 1800, 4410, 840, 4032};
+	int n[num] = {6,7,8,9,10};
 	int N, M = 0; // n input M ans
 	srand((int)time(NULL));
 	int count = 0;
