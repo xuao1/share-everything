@@ -25,7 +25,7 @@ vim prometheus.yml
 
 **Remark：** **不要用用户名代替IP**，否则后面在线状态会一直显示down！
 
-![](image1.png)
+![](images/image1.png)
 
 如果使用pushgateway（网关）主动拉取消息，在上述配置文件最后添加以下内容：
 
@@ -59,7 +59,7 @@ vim prometheus.yml
 
 保持终端，到网页访问`http://192.168.116.129:9090/targets`，若显示当前Server及Client在线状态说明运行成功：
 
-![](image6.png)
+![](images/image6.png)
 
 **Step5：** 设置prometheus系统服务,并配置开机启动
 
@@ -105,11 +105,11 @@ systemctl status prometheus.service
 
 出现如下显示说明成功：
 
-![](image7.png)
+![](images/image7.png)
 
 保持终端，到网页访问`http://192.168.116.129:9090/targets`，若显示当前Server及Client在线状态说明运行成功：
 
-![](image8.png)
+![](images/image8.png)
 
 ## Client端
 
@@ -134,7 +134,7 @@ cd node_exporter-1.3.1.linux-amd64/
 
 保持终端，到网页访问`http://192.168.116.129:9100/metrics`，若显示当前 node_exporter 获取到的当前主机的所有监控数据说明运行成功：
 
-![](image3.png)
+![](images/image3.png)
 
 **Remark：** 
 
@@ -219,11 +219,11 @@ systemctl status node_exporter.service
 
 出现如下显示说明成功：
 
-![](image4.png)
+![](images/image4.png)
 
 保持终端，到网页访问`http://192.168.116.131:9100/metrics`，若显示当前 node_exporter 获取到的当前主机的所有监控数据说明运行成功：
 
-![](image5.png)
+![](images/image5.png)
 
 ### 安装Pushgateway（暂不需要）
 
@@ -240,7 +240,5 @@ Remark：
 * pushgateway没有配置文件，到目录下找到可执行文件说明安装成功
 
 * pushgateway可以安装在client端也可以安装在server端
-
-
 
 ## 使用InfluxDB

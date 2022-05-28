@@ -1,8 +1,6 @@
 # Grafana
 
-## 简介
-
-## 安装运行
+## 安装试运行
 
 **Step1：** 从官网上下载并解压：
 
@@ -23,14 +21,14 @@ cd bin/
 
 保持终端，浏览器访问`192.168.116.129:3000` 出现Grafana界面，默认用户名和密码都是admin，出现如下界面说明正常：
 
-![](image9.png)
+![](images/image9.png)
 
 **Step3：** 添加数据源
 
 左侧菜单栏：Configuration -> Data Sources -> Prometheus到如下界面，将URL改为自己的IP加默认端口9090：
 
-![](image10.png)
+![](images/image10.png)
 
 其余默认，点击Save&Test至显示如下：
 
-<img src="image11.png" title="" alt="" width="468">
+<img title="" src="images/image11.png" alt="" width="468">
